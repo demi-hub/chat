@@ -1,0 +1,165 @@
+{% comment %} {% extends 'users_list.html' %}
+{% block content %} {% endcomment %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users List</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Left sidebar for user list -->
+        <div class="user-list">
+
+            <nav>
+                <ul>
+                    {% if user.is_authenticated %}
+                        <a class="class-links" href="{% url 'home' %}">Logout</a>
+                    {% endif %}
+                    <div class="top-right-corner">
+                        <li> Hi {{ request.user.first_name }} Welcome!</li>
+                    </div>
+                </ul>
+            </nav>
+
+            <h2>All Users</h2>
+            <ol>
+                <form method="get">
+                  {% csrf_token %}
+                  {% for user in users %}
+                      <li class="user-item" onclick="openChat('{{ user.id }}')">{{ user.email }} - {{ user.first_name }}</li>
+                  {% endfor %}
+                </form>
+
+                <!-- Error display for any form-related issues -->
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <div style="color: red;">{{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+            </ol>
+
+           </ol>
+
+        </div>
+  
+        <script>
+            function openChat(userId) {
+                console.log("Opening chat for user ID:", userId);
+                // Add your logic here to open the chat for the selected user
+                // For example, you might want to redirect to a chat page or open a chat modal
+                window.location.href = `/history/${userId}/`;
+            }
+        </script>
+
+</body>
+</html>
+
+
+<div class="chat-room" id="chat-room">
+    <div class="chat-header">
+        <h3>{{ chat_user }}</h3>
+    </div>
+
+    <div id="notification-box" class="notification hidden">
+        <!-- Notification text will be injected here -->
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+        <ul id="message-list">
+            {% if history is None %}
+                <li class="no-chat">No previous chats</li>
+            {% else %}
+                {% for chat in history %}
+                    <li>
+                        <strong style="font-size: 1.2em;">{{ chat.sender.first_name }}</strong> <strong>:</strong> {{ chat.message }}
+                    </li>
+                {% endfor %}
+            {% endif%}
+        </ul>
+    </div>
+
+    <div class="chat-input">
+        <input class="chat-input"  type="text" id="message-input" placeholder="Type your message here...">
+        <button id="send-button">Send</button>
+    </div>
+
+</div>
+
+<div class="chat-messages" id="chat-messages">
+    <ul id="message-list"></ul>
+</div>
+
+<script>
+
+    const roomId = {{ room_id }};
+    const socket = new WebSocket(`ws://localhost:8000/chat/${roomId}/`);
+    const receiver = {{ receiver }}
+
+    socket.onopen = function() {
+        console.log('Connected to the WebSocket server for room:', roomId);
+    };
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        const messageList = document.getElementById('message-list');
+        
+        if (data.notification) {
+            displayNotification(data.notification);
+        }
+
+        const currentUserId = {{ request.user.id }};  // Get the current user's ID from Django
+
+        // Check if the current user is the receiver
+        if (data.receiver === currentUserId) {
+            displayNotification(data.notification);  // Show notification only for the receiver
+        }
+
+        const noChatItem = messageList.querySelector('.no-chat');
+        if (noChatItem) {
+            noChatItem.remove();
+        }
+
+        const newMessage = document.createElement('li');
+        newMessage.innerHTML = `<strong style="font-size: 1.2em;">${data.sender}</strong> <strong>:</strong> ${data.message}`;
+        messageList.appendChild(newMessage);
+        
+        console.log('Appending new message:', newMessage.textContent);
+        messageList.scrollTop = messageList.scrollHeight;
+
+    };
+
+    socket.onclose = function(event) {
+        console.log('WebSocket connection closed:', event);
+    };
+
+    document.getElementById('send-button').onclick = function() {
+        const messageInput = document.getElementById('message-input');
+        const message = messageInput.value;
+        const sender = {{ request.user.id }};
+
+        if (message) {
+            socket.send(JSON.stringify({
+                'message': message,
+                'room_id': roomId,
+                'sender': sender,
+                'receiver': receiver
+            }));
+            messageInput.value = '';
+        }
+    };
+
+    function displayNotification(notificationText) {
+        const notificationBox = document.getElementById('notification-box');
+        notificationBox.textContent = notificationText;
+        notificationBox.classList.add('show');
+
+        setTimeout(() => notificationBox.classList.remove('show'), 5000);
+    }
+
+</script>

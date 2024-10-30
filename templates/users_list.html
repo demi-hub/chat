@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users List</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Left sidebar for user list -->
+        <div class="user-list">
+            <nav>
+                <ul>
+                    {% if user.is_authenticated %}
+                        <li><a class="class-links" href="{% url 'home' %}">Logout</a></li>
+                    {% endif %}
+                    <div class="top-right-corner">
+                        <li> Hi {{ request.user.first_name }} Welcome!</li>
+                    </div>
+                </ul>
+            </nav>
+            
+            <h2>All Users</h2>
+            <ol>
+                <form method="get">
+                  {% csrf_token %}
+                  {% for user in users %}
+                      <li class="user-item" onclick="openChat('{{ user.id }}')">{{ user.email }} - {{ user.first_name }}</li>
+                  {% endfor %}
+                </form>
+
+                <!-- Error display for any form-related issues -->
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <div style="color: red;">{{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+            </ol>
+        </div>
+        
+        <script>
+            function openChat(userId) {
+                console.log("Opening chat for user ID:", userId);
+                // Add your logic here to open the chat for the selected user
+                // For example, you might want to redirect to a chat page or open a chat modal
+                window.location.href = `/history/${userId}/`;
+            }
+        </script>
+
+</body>
+</html>

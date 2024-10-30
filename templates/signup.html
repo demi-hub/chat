@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<header>
+    <nav>
+        <ul>
+            <li><a class="class-links" href="{% url 'home' %}">Home</a></li>
+        </ul>
+    </nav>
+</header>
+<h2>Sign Up</h2>
+<!--<form method="post">-->
+<!--    {% csrf_token %}-->
+<!--    {{ form.as_p }}-->
+<!--    <button type="submit">Sign Up</button>-->
+<!--</form>-->
+<body>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.email.label_tag }} {{ form.email }}<br>
+        {{ form.password.label_tag }} {{ form.password }}<br>
+        {{ form.first_name.label_tag }} {{ form.first_name }}<br>
+        {{ form.city.label_tag }} {{ form.city }}<br>
+        {{ form.dob.label_tag }} {{ form.dob }}<br>
+        <button type="submit" class="submit-button">Signup</button>
+    </form>
+    {% if form.non_field_errors %}
+        <div style="color: red;">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+     {% for field in form %}
+        {% for error in field.errors %}
+            <div style="color: red;">{{ error }}</div>
+        {% endfor %}
+    {% endfor %}
+</body>
+{% endblock %}
