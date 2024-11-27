@@ -109,14 +109,10 @@
         const data = JSON.parse(event.data);
         const messageList = document.getElementById('message-list');
         
-        if (data.notification) {
-            displayNotification(data.notification);
-        }
-
         const currentUserId = {{ request.user.id }};  // Get the current user's ID from Django
 
         // Check if the current user is the receiver
-        if (data.receiver === currentUserId) {
+        if (Number(data.receiver) === Number(currentUserId)) {
             displayNotification(data.notification);  // Show notification only for the receiver
         }
 

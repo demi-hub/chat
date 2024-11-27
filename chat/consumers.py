@@ -56,6 +56,7 @@ class Chat(AsyncWebsocketConsumer):
             user = await sync_to_async(User.objects.get)(id=sender)
             await self.send(text_data=json.dumps({
                     'sender':user.first_name,
+                    'sender_id':sender,
                     'receiver':receiver,
                     'message':message,
                     'room_id':room_id,
