@@ -1,6 +1,6 @@
 from django.urls import path
-# from .views import HomeView
-from .views import Signup, Login, HomeView, UsersList, ChatData
+from .views import HomeView
+from .views import Signup, Login, HomeView, UsersList, ChatData, REST_Login
 
 
 urlpatterns = [
@@ -9,6 +9,7 @@ urlpatterns = [
     path('login/', Login.as_view(), name='login'),
     path('list-users/', UsersList.as_view(), name='list-users'),
     path('history/<int:id>/', ChatData.as_view(), name='chat-history'),
+    path('user_login/', REST_Login.as_view({"post":"access_token_login"})),
     
 
 ]

@@ -1,4 +1,6 @@
+from django.http import JsonResponse
 from django.template.context_processors import request
+from rest_framework import status
 
 from .forms import SignUpForm, LoginForm
 from django.shortcuts import redirect, render
@@ -92,4 +94,28 @@ class ChatData(TemplateView):
             context['users'] = User.objects.exclude(id=sender.id)
             context['chat_user'] = User.objects.get(id=receiver).first_name
             return context
+
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework import viewsets
+class REST_Login(viewsets.ViewSet):
+
+    def access_token_login(self, request):
+        data = request.data
+        user = User.objects.get(email=data['email'])
+
+        check_ps = user.check_password(request['password'])
+        if not check_ps:
+            return JsonResponse({"error": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
+
+        access = AccessToken.for_user(user)
+        refresh = RefreshToken.for_user(user)
+
+        res = {}
+        res['access_token'] = access['token']
+        res['refresh_token'] = refresh['token']
+        res['user_id'] = user.id
+        res['email'] = user.email
+        return JsonResponse(res, status=status.HTTP_200_OK)                
+
 
